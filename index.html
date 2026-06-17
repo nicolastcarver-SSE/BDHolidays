@@ -7,436 +7,446 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-  :root{
-    --blue:#2563eb;
-    --blue-light:#dbeafe;
-    --green:#16a34a;
-    --green-light:#dcfce7;
-    --yellow:#eab308;
-    --yellow-light:#fef9c3;
-    --red:#dc2626;
-    --red-light:#fee2e2;
-    --orange:#f59e0b;
-    --orange-light:#fef3c7;
-    --purple:#9333ea;
-    --purple-light:#f3e8ff;
-    --gray:#6b7280;
-    --gray-light:#f3f4f6;
-    --bg:#f8fafc;
-    --card:#ffffff;
-    --border:#e2e8f0;
-    --text:#1e293b;
-    --text-light:#64748b;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;}
-  body{background:var(--bg);color:var(--text);min-height:100vh;}
+:root{
+  --bg:#f0f4f8;
+  --card:#ffffff;
+  --border:#e2e8f0;
+  --text:#1e293b;
+  --text-light:#64748b;
+  --blue:#2563eb;
+  --blue-light:#dbeafe;
+  --green:#16a34a;
+  --red:#dc2626;
+  --red-light:#fee2e2;
+  --orange:#f59e0b;
+  --orange-light:#fef3c7;
+  --gray:#6b7280;
+  --gray-light:#f3f4f6;
+  --radius:12px;
+  --shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+body{background:var(--bg);color:var(--text);min-height:100vh;}
 
-  header{
-    background:var(--card);
-    border-bottom:1px solid var(--border);
-    padding:16px 24px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    flex-wrap:wrap;
-    gap:12px;
-    position:sticky;
-    top:0;
-    z-index:100;
-    box-shadow:0 1px 3px rgba(0,0,0,0.04);
-  }
-  header h1{font-size:1.25rem;font-weight:700;color:var(--text);}
-  header h1 span{color:var(--blue);}
+/* HEADER */
+header{
+  background:linear-gradient(135deg,#1e293b 0%,#2563eb 100%);
+  padding:0 28px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  height:60px;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 2px 12px rgba(37,99,235,0.25);
+}
+header h1{
+  font-size:1.15rem;font-weight:800;color:#fff;
+  display:flex;align-items:center;gap:10px;letter-spacing:-0.3px;
+}
+header h1 .logo{font-size:1.4rem;}
+.header-right{display:flex;align-items:center;gap:14px;}
+.conn-pill{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.12);
+  border-radius:20px;padding:5px 12px;
+  font-size:0.78rem;color:rgba(255,255,255,0.9);font-weight:600;
+}
+.dot{width:8px;height:8px;border-radius:50%;background:#6b7280;transition:background .3s;}
+.dot.synced{background:#22c55e;}
+.dot.saving{background:#f59e0b;animation:pulse 1s infinite;}
+.dot.error{background:#ef4444;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.btn-reset{
+  background:rgba(239,68,68,0.15);color:#fca5a5;
+  border:1px solid rgba(239,68,68,0.3);
+  padding:6px 14px;border-radius:8px;cursor:pointer;
+  font-size:0.8rem;font-weight:700;transition:.2s;
+}
+.btn-reset:hover{background:rgba(239,68,68,0.3);color:#fff;}
 
-  .status-area{display:flex;align-items:center;gap:16px;}
-  .conn-status{display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--text-light);}
-  .dot{width:10px;height:10px;border-radius:50%;background:var(--gray);transition:background .3s;}
-  .dot.synced{background:var(--green);}
-  .dot.saving{background:var(--orange);animation:pulse 1s infinite;}
-  .dot.error{background:var(--red);}
-  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+/* MAIN LAYOUT */
+main{padding:24px 28px;max-width:1600px;margin:0 auto;}
 
-  .reset-btn{
-    background:var(--red-light);
-    color:var(--red);
-    border:1px solid var(--red);
-    padding:8px 16px;
-    border-radius:6px;
-    cursor:pointer;
-    font-size:0.85rem;
-    font-weight:600;
-    transition:.2s;
-  }
-  .reset-btn:hover{background:var(--red);color:#fff;}
+/* PERSON FILTER BAR */
+.filter-bar{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:16px 20px;
+  margin-bottom:20px;
+  box-shadow:var(--shadow);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.filter-bar .bar-label{font-size:0.78rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-right:4px;}
+.person-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:20px;
+  font-size:0.82rem;font-weight:700;cursor:pointer;
+  border:2px solid transparent;
+  transition:all .2s;
+  user-select:none;
+  position:relative;
+}
+.person-chip.active{opacity:1;}
+.person-chip.inactive{opacity:0.35;filter:grayscale(0.5);}
+.chip-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.chip-name{}
+.chip-edit{
+  font-size:0.7rem;margin-left:2px;opacity:0.6;
+  cursor:pointer;
+}
+.chip-edit:hover{opacity:1;}
+.btn-add-person{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:20px;
+  font-size:0.82rem;font-weight:700;cursor:pointer;
+  border:2px dashed var(--border);
+  background:none;color:var(--text-light);
+  transition:.2s;
+}
+.btn-add-person:hover{border-color:var(--blue);color:var(--blue);}
 
-  nav.tabs{
-    display:flex;
-    background:var(--card);
-    border-bottom:1px solid var(--border);
-    overflow-x:auto;
-    position:sticky;
-    top:65px;
-    z-index:99;
-  }
-  nav.tabs button{
-    padding:14px 22px;
-    border:none;
-    background:none;
-    cursor:pointer;
-    font-size:0.95rem;
-    font-weight:600;
-    color:var(--text-light);
-    border-bottom:3px solid transparent;
-    transition:.2s;
-    white-space:nowrap;
-  }
-  nav.tabs button:hover{color:var(--blue);background:var(--gray-light);}
-  nav.tabs button.active{color:var(--blue);border-bottom-color:var(--blue);}
+/* CALENDAR SECTION */
+.calendars-wrap{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  margin-bottom:20px;
+}
+@media(max-width:900px){.calendars-wrap{grid-template-columns:1fr;}}
 
-  main{padding:24px;max-width:1400px;margin:0 auto;}
-  .tab-content{display:none;}
-  .tab-content.active{display:block;animation:fadeIn .25s ease;}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+.cal-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:20px;
+  box-shadow:var(--shadow);
+}
+.cal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;
+}
+.cal-title{font-size:1rem;font-weight:800;color:var(--text);}
+.cal-nav{display:flex;align-items:center;gap:8px;}
+.cal-nav button{
+  width:30px;height:30px;border-radius:8px;
+  border:1px solid var(--border);background:var(--gray-light);
+  cursor:pointer;font-size:0.9rem;transition:.15s;
+  display:flex;align-items:center;justify-content:center;
+}
+.cal-nav button:hover{background:var(--blue-light);color:var(--blue);}
+.btn-today{
+  font-size:0.75rem;font-weight:700;padding:4px 10px;
+  border-radius:6px;border:1px solid var(--border);
+  background:var(--gray-light);cursor:pointer;color:var(--text-light);
+  transition:.15s;
+}
+.btn-today:hover{background:var(--blue-light);color:var(--blue);}
 
-  .card{
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:10px;
-    padding:20px;
-    margin-bottom:20px;
-    box-shadow:0 1px 2px rgba(0,0,0,0.03);
-  }
-  .card h2{font-size:1.1rem;margin-bottom:16px;color:var(--text);}
-  .card h3{font-size:1rem;margin-bottom:10px;color:var(--text);}
+.cal-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:3px;
+}
+.cal-dow{
+  text-align:center;font-size:0.68rem;font-weight:800;
+  color:var(--text-light);padding:4px 0;
+  text-transform:uppercase;letter-spacing:.05em;
+}
+.cal-day{
+  min-height:64px;
+  border:1px solid var(--border);
+  border-radius:7px;
+  padding:4px 5px;
+  display:flex;flex-direction:column;
+  gap:2px;
+  background:#fff;
+}
+.cal-day.empty{background:transparent;border:none;}
+.cal-day.weekend{background:#fafafa;opacity:.6;}
+.cal-day.today .day-num{
+  background:var(--blue);color:#fff;
+  border-radius:50%;width:22px;height:22px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.75rem;
+}
+.cal-day.holiday{background:#fff5f5;border-color:#fecaca;}
+.day-num{font-size:0.75rem;font-weight:800;color:var(--text);margin-bottom:1px;}
+.day-holiday-label{font-size:0.58rem;color:var(--red);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.person-tag{
+  font-size:0.6rem;font-weight:700;
+  padding:2px 5px;border-radius:4px;
+  color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 
-  /* ATTENDANCE TAB */
-  .attendance-controls{
-    display:flex;
-    gap:12px;
-    align-items:center;
-    flex-wrap:wrap;
-    margin-bottom:20px;
-  }
-  select, input, button.std-btn{
-    padding:8px 12px;
-    border:1px solid var(--border);
-    border-radius:6px;
-    font-size:0.9rem;
-    background:#fff;
-    color:var(--text);
-  }
-  .month-nav{display:flex;align-items:center;gap:8px;}
-  .month-nav button{
-    border:1px solid var(--border);
-    background:#fff;
-    border-radius:6px;
-    width:34px;height:34px;
-    cursor:pointer;
-    font-size:1rem;
-    display:flex;align-items:center;justify-content:center;
-    transition:.2s;
-  }
-  .month-nav button:hover{background:var(--blue-light);color:var(--blue);}
-  .month-label{font-weight:700;min-width:160px;text-align:center;font-size:1rem;}
+/* HOLIDAY REQUESTS SECTION */
+.section-title{
+  font-size:1rem;font-weight:800;color:var(--text);
+  margin-bottom:14px;display:flex;align-items:center;gap:8px;
+}
 
-  .calendar-grid{
-    display:grid;
-    grid-template-columns:repeat(7,1fr);
-    gap:6px;
-    margin-top:12px;
-  }
-  .calendar-grid .dow{
-    text-align:center;
-    font-size:0.78rem;
-    font-weight:700;
-    color:var(--text-light);
-    padding:6px 0;
-    text-transform:uppercase;
-  }
-  .day-cell{
-    min-height:70px;
-    border:1px solid var(--border);
-    border-radius:8px;
-    padding:6px;
-    display:flex;
-    flex-direction:column;
-    justify-content:flex-start;
-    align-items:stretch;
-    gap:2px;
-    transition:.15s;
-    position:relative;
-    background:#fff;
-  }
-  .day-cell.empty{background:transparent;border:none;}
-  .day-num{font-size:0.85rem;font-weight:700;}
-  .day-tag{font-size:0.62rem;font-weight:700;text-align:left;padding:2px 4px;border-radius:4px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .day-cell.weekend{background:#f8fafc;opacity:.55;cursor:default;}
-  .day-cell.weekend:hover{transform:none;box-shadow:none;}
-  .day-cell.holiday{background:var(--red-light);border-color:var(--red);}
-  .day-cell.holiday .day-tag{background:var(--red);color:#fff;}
+.card{
+  background:var(--card);border-radius:var(--radius);
+  padding:22px;margin-bottom:18px;
+  box-shadow:var(--shadow);
+}
 
-  .summary-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:14px;
-    margin-top:16px;
-  }
-  .summary-box{
-    border:1px solid var(--border);
-    border-radius:8px;
-    padding:14px;
-    text-align:center;
-  }
-  .summary-box .label{font-size:0.78rem;color:var(--text-light);text-transform:uppercase;font-weight:600;letter-spacing:.03em;}
-  .summary-box .value{font-size:1.8rem;font-weight:800;margin-top:6px;}
-  .summary-box .sub{font-size:0.75rem;color:var(--text-light);margin-top:4px;}
-  .pct-green{color:var(--green);}
-  .pct-amber{color:var(--orange);}
-  .pct-red{color:var(--red);}
+.pending-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.pending-card{
+  border:1px solid var(--border);border-radius:10px;padding:14px;
+  display:flex;flex-direction:column;gap:8px;
+}
+.pending-card .p-name{font-size:0.85rem;font-weight:700;display:flex;align-items:center;gap:7px;}
+.pending-card .p-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.pending-card label{font-size:0.72rem;color:var(--text-light);font-weight:600;}
+.pending-card input[type=number]{
+  width:100%;padding:7px 10px;border:1px solid var(--border);
+  border-radius:7px;font-size:0.88rem;
+}
 
-  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;font-size:0.8rem;}
-  .legend-item{display:flex;align-items:center;gap:6px;}
-  .legend-swatch{width:14px;height:14px;border-radius:3px;}
+.form-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group label{font-size:0.72rem;color:var(--text-light);font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+.form-group select,.form-group input[type=date]{
+  padding:8px 12px;border:1.5px solid var(--border);
+  border-radius:8px;font-size:0.875rem;
+  background:#fff;color:var(--text);
+  min-width:150px;
+  transition:.15s;
+}
+.form-group select:focus,.form-group input:focus{outline:none;border-color:var(--blue);}
+.btn-primary{
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  color:#fff;border:none;
+  padding:9px 20px;border-radius:8px;cursor:pointer;
+  font-weight:800;font-size:0.875rem;
+  box-shadow:0 2px 8px rgba(37,99,235,0.3);
+  transition:.2s;white-space:nowrap;
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,0.4);}
+.btn-delete{
+  background:none;border:1px solid #fecaca;color:var(--red);
+  border-radius:6px;padding:4px 10px;cursor:pointer;
+  font-size:0.75rem;font-weight:700;transition:.2s;
+}
+.btn-delete:hover{background:var(--red);color:#fff;}
+.btn-sm{
+  padding:5px 12px;border-radius:7px;border:1px solid var(--border);
+  background:var(--gray-light);cursor:pointer;font-size:0.78rem;font-weight:700;
+  color:var(--text-light);transition:.15s;
+}
+.btn-sm:hover{background:var(--blue-light);color:var(--blue);border-color:var(--blue);}
 
-  /* WORK SHIFTS TAB */
-  table{width:100%;border-collapse:collapse;}
-  table th, table td{
-    padding:10px 12px;
-    text-align:left;
-    border-bottom:1px solid var(--border);
-    font-size:0.88rem;
-  }
-  table th{background:var(--gray-light);font-weight:700;color:var(--text);}
-  table tr:hover td{background:#fafbfc;}
-  .badge{
-    display:inline-block;
-    padding:3px 10px;
-    border-radius:12px;
-    font-size:0.75rem;
-    font-weight:700;
-  }
-  .badge-blue{background:var(--blue-light);color:var(--blue);}
-  .badge-yellow{background:var(--yellow-light);color:#92670c;}
-  .badge-green{background:var(--green-light);color:var(--green);}
-  .badge-red{background:var(--red-light);color:var(--red);}
+table{width:100%;border-collapse:collapse;}
+table th,table td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);font-size:0.84rem;}
+table th{background:var(--gray-light);font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--text-light);}
+table tr:last-child td{border-bottom:none;}
+table tr:hover td{background:#fafbfc;}
+.badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:700;}
+.badge-blue{background:#dbeafe;color:#1d4ed8;}
+.badge-yellow{background:#fef9c3;color:#92400e;}
+.badge-green{background:#dcfce7;color:#15803d;}
+.badge-red{background:#fee2e2;color:#dc2626;}
+.balance-table td:nth-child(n+2){text-align:center;}
+.balance-num{font-size:1rem;font-weight:800;display:block;}
+.balance-used{font-size:0.72rem;color:var(--text-light);}
 
-  /* HOLIDAY REQUESTS TAB */
-  .pending-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:14px;
-  }
-  .pending-card{
-    border:1px solid var(--border);
-    border-radius:8px;
-    padding:14px;
-  }
-  .pending-card .name{font-weight:700;margin-bottom:8px;}
-  .pending-card label{font-size:0.78rem;color:var(--text-light);display:block;margin-bottom:4px;}
-  .pending-card input{width:100%;}
+.small-text{font-size:0.78rem;color:var(--text-light);}
+.tip{
+  background:var(--blue-light);border-radius:8px;
+  padding:10px 14px;font-size:0.78rem;color:#1d4ed8;font-weight:600;
+  margin-bottom:16px;
+}
 
-  .form-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;}
-  .form-group{display:flex;flex-direction:column;gap:4px;}
-  .form-group label{font-size:0.78rem;color:var(--text-light);font-weight:600;}
-  .form-group select, .form-group input{min-width:160px;}
-  .btn-primary{
-    background:var(--blue);
-    color:#fff;
-    border:none;
-    padding:9px 18px;
-    border-radius:6px;
-    cursor:pointer;
-    font-weight:700;
-    font-size:0.9rem;
-    transition:.2s;
-  }
-  .btn-primary:hover{background:#1d4ed8;}
-  .btn-delete{
-    background:none;
-    border:1px solid var(--red);
-    color:var(--red);
-    border-radius:6px;
-    padding:4px 10px;
-    cursor:pointer;
-    font-size:0.78rem;
-    font-weight:700;
-  }
-  .btn-delete:hover{background:var(--red);color:#fff;}
+/* MODALS */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(15,23,42,0.5);backdrop-filter:blur(4px);
+  z-index:1000;align-items:center;justify-content:center;
+}
+.modal-overlay.active{display:flex;}
+.modal-box{
+  background:#fff;border-radius:16px;padding:28px;
+  max-width:440px;width:90%;
+  box-shadow:0 20px 60px rgba(0,0,0,0.2);
+  animation:popIn .2s ease;
+}
+@keyframes popIn{from{transform:scale(.95);opacity:0;}to{transform:scale(1);opacity:1;}}
+.modal-box h3{font-size:1.05rem;font-weight:800;margin-bottom:10px;}
+.modal-box p{color:var(--text-light);font-size:0.875rem;margin-bottom:20px;line-height:1.5;}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;}
+.modal-actions button{
+  padding:9px 18px;border-radius:8px;cursor:pointer;
+  font-weight:700;font-size:0.875rem;border:1px solid var(--border);background:#fff;
+  transition:.15s;
+}
+.modal-actions button:hover{background:var(--gray-light);}
+.modal-actions .btn-danger{background:var(--red);color:#fff;border:none;}
+.modal-actions .btn-danger:hover{background:#b91c1c;}
+.modal-input{
+  width:100%;padding:9px 12px;border:1.5px solid var(--border);
+  border-radius:8px;font-size:0.9rem;margin-bottom:14px;
+}
+.modal-input:focus{outline:none;border-color:var(--blue);}
+.color-picker-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.color-swatch{
+  width:32px;height:32px;border-radius:50%;cursor:pointer;
+  border:3px solid transparent;transition:.15s;
+}
+.color-swatch.selected,.color-swatch:hover{border-color:var(--text);transform:scale(1.15);}
+input[type=color]{
+  width:36px;height:36px;border-radius:50%;border:none;
+  padding:0;cursor:pointer;background:none;
+}
 
-  .balance-table td:nth-child(n+2){text-align:center;}
-
-  /* MODAL */
-  .modal-overlay{
-    display:none;
-    position:fixed;
-    top:0;left:0;right:0;bottom:0;
-    background:rgba(0,0,0,0.45);
-    z-index:1000;
-    align-items:center;
-    justify-content:center;
-  }
-  .modal-overlay.active{display:flex;}
-  .modal-box{
-    background:#fff;
-    border-radius:10px;
-    padding:24px;
-    max-width:420px;
-    width:90%;
-    box-shadow:0 10px 30px rgba(0,0,0,0.2);
-  }
-  .modal-box h3{margin-bottom:10px;}
-  .modal-box p{color:var(--text-light);font-size:0.9rem;margin-bottom:18px;}
-  .modal-actions{display:flex;justify-content:flex-end;gap:10px;}
-  .modal-actions button{
-    padding:8px 16px;
-    border-radius:6px;
-    cursor:pointer;
-    font-weight:700;
-    font-size:0.9rem;
-    border:1px solid var(--border);
-    background:#fff;
-  }
-  .modal-actions .confirm{background:var(--red);color:#fff;border:none;}
-
-  .small-text{font-size:0.8rem;color:var(--text-light);}
-  .section-divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
-
-  @media (max-width:640px){
-    header{padding:12px 16px;}
-    main{padding:12px;}
-    .calendar-grid{gap:3px;}
-    .day-cell{min-height:54px;padding:3px;}
-    .day-num{font-size:0.75rem;}
-    .day-tag{font-size:0.55rem;}
-  }
+@media(max-width:640px){
+  header{padding:0 16px;}
+  main{padding:14px 14px;}
+  .cal-day{min-height:50px;}
+}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>📅 <span>Vacaciones BD</span></h1>
-  <div class="status-area">
-    <div class="conn-status">
+  <h1><span class="logo">🌴</span> Vacaciones BD</h1>
+  <div class="header-right">
+    <div class="conn-pill">
       <div class="dot" id="connDot"></div>
       <span id="connText">Conectando...</span>
     </div>
-    <button class="reset-btn" id="resetBtn">🗑️ Reset datos</button>
+    <button class="btn-reset" id="resetBtn">🗑 Reset</button>
   </div>
 </header>
 
-<nav class="tabs">
-  <button class="tab-btn active" data-tab="calendar">Calendar</button>
-  <button class="tab-btn" data-tab="holidays">Holiday requests</button>
-</nav>
-
 <main>
 
-  <!-- ================= CALENDAR TAB ================= -->
-  <div class="tab-content active" id="tab-calendar">
-    <div class="card">
-      <div class="attendance-controls">
-        <div class="month-nav">
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <span class="bar-label">Equipo</span>
+    <div id="personChips"></div>
+    <button class="btn-add-person" id="addPersonBtn">+ Añadir persona</button>
+  </div>
+
+  <!-- TWO MONTH CALENDARS -->
+  <div class="calendars-wrap">
+    <div class="cal-card">
+      <div class="cal-header">
+        <div class="cal-title" id="calTitle1"></div>
+        <div class="cal-nav">
           <button id="prevMonth">‹</button>
-          <div class="month-label" id="monthLabel"></div>
+          <button class="btn-today" id="todayBtn">Hoy</button>
           <button id="nextMonth">›</button>
         </div>
-        <button class="std-btn" id="todayBtn">Hoy</button>
       </div>
+      <div class="cal-grid" id="calGrid1"></div>
+    </div>
+    <div class="cal-card">
+      <div class="cal-header">
+        <div class="cal-title" id="calTitle2"></div>
+      </div>
+      <div class="cal-grid" id="calGrid2"></div>
+    </div>
+  </div>
 
-      <div class="calendar-grid" id="calendarGrid"></div>
+  <!-- HOLIDAY REQUESTS -->
+  <div class="card">
+    <div class="section-title">📅 Días pendientes 2025 <span class="small-text" style="font-weight:400">(caducaron 30 abr 2026 — referencia)</span></div>
+    <div class="pending-grid" id="pendingGrid"></div>
+  </div>
 
-      <div class="legend" id="teamLegend"></div>
-      <div class="legend" style="margin-top:8px;">
-        <div class="legend-item"><div class="legend-swatch" style="background:var(--red)"></div>Festivo</div>
+  <div class="card">
+    <div class="section-title">➕ Añadir solicitud</div>
+    <div class="tip">💡 Los días laborables se calculan automáticamente excluyendo festivos y fines de semana.</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Persona</label>
+        <select id="reqPerson"></select>
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="reqType">
+          <option value="vac2026">Vacaciones 2026 (22 días)</option>
+          <option value="vac2025">Vacaciones 2025 pendientes</option>
+          <option value="libre">Libre disposición (7 días)</option>
+          <option value="navidad">Días navideños (3 días)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Inicio</label>
+        <input type="date" id="reqStart">
+      </div>
+      <div class="form-group">
+        <label>Fin</label>
+        <input type="date" id="reqEnd">
+      </div>
+      <div class="form-group">
+        <label>&nbsp;</label>
+        <button class="btn-primary" id="addRequestBtn">Añadir solicitud</button>
       </div>
     </div>
   </div>
 
-  <!-- ================= HOLIDAY REQUESTS TAB ================= -->
-  <div class="tab-content" id="tab-holidays">
+  <div class="card">
+    <div class="section-title">📋 Solicitudes registradas</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Persona</th><th>Tipo</th><th>Inicio</th><th>Fin</th><th>Días lab.</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="requestsTableBody"></tbody>
+    </table>
+  </div>
 
-    <div class="card">
-      <h2>Días pendientes del año anterior (2025) — caducaron 30 abr 2026</h2>
-      <p class="small-text" style="margin-bottom:14px;">Introduce manualmente los días de vacaciones 2025 pendientes de cada persona (se registran como referencia).</p>
-      <div class="pending-grid" id="pendingGrid"></div>
-    </div>
-
-    <div class="card">
-      <h2>➕ Añadir solicitud de vacaciones / días</h2>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Persona</label>
-          <select id="reqPerson"></select>
-        </div>
-        <div class="form-group">
-          <label>Tipo de día</label>
-          <select id="reqType">
-            <option value="vac2026">Vacaciones 2026 (22 días, caduca 30 abr 2027)</option>
-            <option value="vac2025">Vacaciones 2025 pendientes (caducaron 30 abr 2026)</option>
-            <option value="libre">Días de libre disposición (7 días, caduca 31 dic 2026)</option>
-            <option value="navidad">Días navideños (3 días)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Fecha inicio</label>
-          <input type="date" id="reqStart">
-        </div>
-        <div class="form-group">
-          <label>Fecha fin</label>
-          <input type="date" id="reqEnd">
-        </div>
-        <div class="form-group">
-          <label>&nbsp;</label>
-          <button class="btn-primary" id="addRequestBtn">Añadir solicitud</button>
-        </div>
-      </div>
-      <p class="small-text">💡 Días navideños: elige fechas dentro del rango 21-23 dic o 28-30 dic 2026.</p>
-    </div>
-
-    <div class="card">
-      <h2>📋 Solicitudes registradas</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Persona</th>
-            <th>Tipo</th>
-            <th>Inicio</th>
-            <th>Fin</th>
-            <th>Días laborables</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="requestsTableBody"></tbody>
-      </table>
-    </div>
-
-    <div class="card">
-      <h2>📊 Saldo por tipo de día</h2>
-      <table class="balance-table">
-        <thead>
-          <tr>
-            <th>Persona</th>
-            <th>Vac. 2026<br><span class="small-text">(22 días)</span></th>
-            <th>Vac. 2025 pend.<br><span class="small-text">(referencia)</span></th>
-            <th>Libre disposición<br><span class="small-text">(7 días)</span></th>
-            <th>Navideños<br><span class="small-text">(3 días)</span></th>
-          </tr>
-        </thead>
-        <tbody id="balanceTableBody"></tbody>
-      </table>
-    </div>
+  <div class="card">
+    <div class="section-title">📊 Saldo por persona</div>
+    <table class="balance-table">
+      <thead>
+        <tr>
+          <th>Persona</th>
+          <th>Vac. 2026<br><span style="font-weight:400">(22 días)</span></th>
+          <th>Vac. 2025<br><span style="font-weight:400">(referencia)</span></th>
+          <th>Libre disp.<br><span style="font-weight:400">(7 días)</span></th>
+          <th>Navideños<br><span style="font-weight:400">(3 días)</span></th>
+        </tr>
+      </thead>
+      <tbody id="balanceTableBody"></tbody>
+    </table>
   </div>
 
 </main>
 
-<!-- Reset confirmation modal -->
+<!-- RESET MODAL -->
 <div class="modal-overlay" id="resetModal">
   <div class="modal-box">
     <h3>⚠️ Confirmar borrado total</h3>
-    <p>Esta acción eliminará permanentemente todos los datos de asistencia, vacaciones y días pendientes para todo el equipo. No se puede deshacer.</p>
+    <p>Se eliminarán permanentemente todas las solicitudes, días pendientes y configuración de personas añadidas. Los 5 miembros originales del equipo permanecerán. No se puede deshacer.</p>
     <div class="modal-actions">
       <button id="cancelReset">Cancelar</button>
-      <button class="confirm" id="confirmReset">Borrar todo</button>
+      <button class="btn-danger" id="confirmReset">Borrar todo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT PERSON MODAL -->
+<div class="modal-overlay" id="personModal">
+  <div class="modal-box">
+    <h3 id="personModalTitle">Añadir persona</h3>
+    <p id="personModalDesc">Escribe el nombre completo y elige un color.</p>
+    <input class="modal-input" type="text" id="personNameInput" placeholder="Nombre completo">
+    <div style="margin-bottom:8px;font-size:0.78rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.04em;">Color</div>
+    <div class="color-picker-row" id="colorSwatches"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <span class="small-text">O elige un color personalizado:</span>
+      <input type="color" id="customColorPicker" value="#6366f1">
+    </div>
+    <div class="modal-actions">
+      <button id="cancelPerson">Cancelar</button>
+      <button class="btn-primary" id="confirmPerson">Guardar</button>
+      <button class="btn-danger" id="deletePerson" style="display:none">Eliminar persona</button>
     </div>
   </div>
 </div>
@@ -444,13 +454,6 @@
 <script>
 /* =========================================================
    FIREBASE CONFIG
-   =========================================================
-   IMPORTANTE: Sustituye estos valores por los de tu propio
-   proyecto Firebase. Crea un proyecto en https://console.firebase.google.com,
-   activa "Realtime Database" y nómbralo "BDHolidays" (o usa ese nombre
-   para la instancia/región de la base de datos). Copia aquí la config
-   que te proporciona Firebase (Configuración del proyecto > General >
-   Tus apps > SDK setup and configuration).
    ========================================================= */
 const firebaseConfig = {
   apiKey: "AIzaSyC8q647pxMrV6oat8IJWdLK2gtkWSRzUJk",
@@ -461,428 +464,543 @@ const firebaseConfig = {
   messagingSenderId: "232225249959",
   appId: "1:232225249959:web:7d1f9d7706f2609a891982"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 /* =========================================================
-   DATA / CONSTANTS
+   DEFAULT TEAM (fallback si Firebase vacío)
    ========================================================= */
-const TEAM = [
-  {id:"almudena", name:"Almudena de la Osada", location:"España, Madrid", color:"#2563eb"},
-  {id:"marco",    name:"Marco Buso",          location:"Italia, Roma",   color:"#16a34a"},
-  {id:"nicolas",  name:"Nicolas Triviño",     location:"España, Madrid", color:"#f59e0b"},
-  {id:"david",    name:"David Otero",         location:"España, Bilbao", color:"#9333ea"},
-  {id:"alejandro",name:"Alejandro Barrios",   location:"España, Madrid", color:"#0d9488"}
+const DEFAULT_TEAM = [
+  {id:"almudena", name:"Almudena de la Osada", color:"#2563eb"},
+  {id:"marco",    name:"Marco Buso",           color:"#16a34a"},
+  {id:"nicolas",  name:"Nicolas Triviño",      color:"#f59e0b"},
+  {id:"david",    name:"David Otero",          color:"#9333ea"},
+  {id:"alejandro",name:"Alejandro Barrios",    color:"#0d9488"}
 ];
 
-// Festivos Madrid 2026 (YYYY-MM-DD => nombre)
-const HOLIDAYS_2026 = {
-  "2026-01-01": {name:"Año Nuevo", scope:"Nacional"},
-  "2026-01-06": {name:"Epifanía del Señor", scope:"Nacional"},
-  "2026-04-02": {name:"Jueves Santo", scope:"Nacional"},
-  "2026-04-03": {name:"Viernes Santo", scope:"Nacional"},
-  "2026-05-01": {name:"Fiesta del Trabajo", scope:"Nacional"},
-  "2026-05-15": {name:"San Isidro", scope:"Local (Madrid)"},
-  "2026-10-12": {name:"Fiesta Nacional de España", scope:"Nacional"},
-  "2026-11-09": {name:"La Almudena", scope:"Local (Madrid)"},
-  "2026-12-08": {name:"La Inmaculada Concepción", scope:"Nacional"},
-  "2026-12-25": {name:"Natividad del Señor", scope:"Nacional"}
+const PRESET_COLORS = [
+  "#2563eb","#16a34a","#f59e0b","#9333ea","#0d9488",
+  "#dc2626","#db2777","#ea580c","#0284c7","#7c3aed",
+  "#059669","#65a30d","#c2410c","#0f766e","#1d4ed8"
+];
+
+/* =========================================================
+   FESTIVOS — España (Madrid) + Italia 2026
+   ========================================================= */
+const HOLIDAYS = {
+  // Nacionales España
+  "2026-01-01": "Año Nuevo",
+  "2026-01-06": "Epifanía",
+  "2026-04-02": "Jueves Santo",
+  "2026-04-03": "Viernes Santo",
+  "2026-05-01": "Día del Trabajo",
+  "2026-05-15": "San Isidro (Madrid)",
+  "2026-10-12": "Fiesta Nacional",
+  "2026-11-09": "La Almudena (Madrid)",
+  "2026-12-08": "La Inmaculada",
+  "2026-12-25": "Navidad",
+  // Nacionales Italia
+  "2026-01-01": "Capodanno",
+  "2026-01-06": "Epifania",
+  "2026-04-05": "Pasqua",  // Pascua Italia 2026
+  "2026-04-06": "Lunedì dell'Angelo",
+  "2026-04-25": "Festa della Liberazione",
+  "2026-05-01": "Festa del Lavoro",
+  "2026-06-02": "Festa della Repubblica",
+  "2026-08-15": "Ferragosto",
+  "2026-11-01": "Tutti i Santi",
+  "2026-12-08": "Immacolata Concezione",
+  "2026-12-25": "Natale",
+  "2026-12-26": "Santo Stefano"
 };
 
 const MONTH_NAMES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-const DOW_NAMES = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+const DOW = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
 
 /* =========================================================
    STATE
    ========================================================= */
-let requestsData = {};     // { requestId: {personId, type, start, end, days} }
-let pendingPrevYear = {};  // { personId: number }
-
+let TEAM = [...DEFAULT_TEAM];
+let activePersonIds = new Set(TEAM.map(p=>p.id));
+let requestsData = {};
+let pendingPrevYear = {};
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
+// modal edit state
+let editingPersonId = null;
+let selectedColor = PRESET_COLORS[0];
 
 /* =========================================================
-   UTILITIES
+   UTILS
    ========================================================= */
-function pad(n){ return n.toString().padStart(2,"0"); }
-function dateKey(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
-function isWeekend(d){ const day = d.getDay(); return day === 0 || day === 6; }
-function isHoliday(d){ return HOLIDAYS_2026[dateKey(d)] || null; }
-function formatDateEs(d){
-  return d.toLocaleDateString("es-ES", {day:"2-digit", month:"2-digit", year:"numeric"});
+function pad(n){return n.toString().padStart(2,"0");}
+function dateKey(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
+function isWeekend(d){const day=d.getDay();return day===0||day===6;}
+function isHoliday(d){return HOLIDAYS[dateKey(d)]||null;}
+function formatDateEs(d){return d.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"numeric"});}
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+function countWorkdays(s,e){
+  const start=new Date(s+"T00:00:00"),end=new Date(e+"T00:00:00");
+  if(isNaN(start)||isNaN(end)||end<start)return 0;
+  let c=0;const d=new Date(start);
+  while(d<=end){if(!isWeekend(d)&&!isHoliday(d))c++;d.setDate(d.getDate()+1);}
+  return c;
 }
 
-// Calcula días laborables (lun-vie, sin festivos) entre dos fechas (incluidas)
-function countWorkdays(startStr, endStr){
-  const start = new Date(startStr+"T00:00:00");
-  const end = new Date(endStr+"T00:00:00");
-  if(isNaN(start) || isNaN(end) || end < start) return 0;
-  let count = 0;
-  const d = new Date(start);
-  while(d <= end){
-    if(!isWeekend(d) && !isHoliday(d)) count++;
-    d.setDate(d.getDate()+1);
-  }
-  return count;
-}
+function getPerson(id){return TEAM.find(p=>p.id===id);}
 
 /* =========================================================
    CONNECTION STATUS
    ========================================================= */
-const connDot = document.getElementById("connDot");
-const connText = document.getElementById("connText");
-
-function setStatus(state){
-  connDot.className = "dot " + state;
-  if(state === "synced") connText.textContent = "Sincronizado";
-  else if(state === "saving") connText.textContent = "Guardando...";
-  else if(state === "error") connText.textContent = "Error de conexión";
-  else connText.textContent = "Conectando...";
+const connDot=document.getElementById("connDot");
+const connText=document.getElementById("connText");
+function setStatus(s){
+  connDot.className="dot "+s;
+  connText.textContent=s==="synced"?"Sincronizado":s==="saving"?"Guardando...":s==="error"?"Sin conexión":"Conectando...";
 }
-
-db.ref(".info/connected").on("value", snap => {
-  if(snap.val() === true) setStatus("synced");
-  else setStatus("error");
+db.ref(".info/connected").on("value",snap=>{
+  setStatus(snap.val()?"synced":"error");
 });
 
 /* =========================================================
-   FIREBASE LISTENERS (real-time sync)
+   FIREBASE LISTENERS
    ========================================================= */
-db.ref("requests").on("value", snap => {
-  requestsData = snap.val() || {};
+db.ref("team").on("value", snap=>{
+  const data = snap.val();
+  if(data){
+    // Merge: default team + extra from Firebase
+    const extra = Object.values(data);
+    // rebuild TEAM: default ones with possible color overrides + extra
+    const overrides = {};
+    extra.forEach(p=>{ overrides[p.id]=p; });
+    TEAM = DEFAULT_TEAM.map(p=>overrides[p.id]?{...p,...overrides[p.id]}:p);
+    // add non-default members
+    extra.forEach(p=>{
+      if(!DEFAULT_TEAM.find(d=>d.id===p.id)) TEAM.push(p);
+    });
+  } else {
+    TEAM = [...DEFAULT_TEAM];
+  }
+  // preserve active filter — add new members as active
+  TEAM.forEach(p=>{ if(!activePersonIds.has(p.id)) activePersonIds.add(p.id); });
+  renderChips();
+  renderCalendars();
+  renderPendingGrid();
+  populateReqPerson();
+  renderBalanceTable();
+});
+
+db.ref("requests").on("value", snap=>{
+  requestsData=snap.val()||{};
+  renderCalendars();
   renderRequestsTable();
   renderBalanceTable();
-  renderCalendar();
-}, () => setStatus("error"));
+},()=>setStatus("error"));
 
-db.ref("pendingPrevYear").on("value", snap => {
-  pendingPrevYear = snap.val() || {};
+db.ref("pendingPrevYear").on("value", snap=>{
+  pendingPrevYear=snap.val()||{};
   renderPendingGrid();
   renderBalanceTable();
-}, () => setStatus("error"));
+},()=>setStatus("error"));
 
 /* =========================================================
    WRITE HELPERS
    ========================================================= */
-function addRequest(reqObj){
+function savePersonToFirebase(person){
   setStatus("saving");
-  const newRef = db.ref("requests").push();
-  newRef.set(reqObj).then(()=>setStatus("synced")).catch(()=>setStatus("error"));
+  db.ref(`team/${person.id}`).set(person).then(()=>setStatus("synced")).catch(()=>setStatus("error"));
 }
-
-function deleteRequest(reqId){
+function deletePersonFromFirebase(id){
   setStatus("saving");
-  db.ref(`requests/${reqId}`).remove().then(()=>setStatus("synced")).catch(()=>setStatus("error"));
+  db.ref(`team/${id}`).remove().then(()=>setStatus("synced")).catch(()=>setStatus("error"));
 }
-
-function setPendingPrevYear(personId, value){
+function addRequest(obj){
   setStatus("saving");
-  db.ref(`pendingPrevYear/${personId}`).set(Number(value) || 0)
-    .then(()=>setStatus("synced")).catch(()=>setStatus("error"));
+  db.ref("requests").push().set(obj).then(()=>setStatus("synced")).catch(()=>setStatus("error"));
 }
-
+function deleteRequest(id){
+  setStatus("saving");
+  db.ref(`requests/${id}`).remove().then(()=>setStatus("synced")).catch(()=>setStatus("error"));
+}
+function setPendingPrevYear(personId,value){
+  setStatus("saving");
+  db.ref(`pendingPrevYear/${personId}`).set(Number(value)||0).then(()=>setStatus("synced")).catch(()=>setStatus("error"));
+}
 function resetAllData(){
   setStatus("saving");
   Promise.all([
     db.ref("requests").remove(),
-    db.ref("pendingPrevYear").remove()
-  ]).then(()=>setStatus("synced")).catch(()=>setStatus("error"));
+    db.ref("pendingPrevYear").remove(),
+    db.ref("team").remove()
+  ]).then(()=>{
+    TEAM=[...DEFAULT_TEAM];
+    activePersonIds=new Set(TEAM.map(p=>p.id));
+    setStatus("synced");
+  }).catch(()=>setStatus("error"));
 }
 
 /* =========================================================
-   TABS
+   PERSON CHIPS (filter bar)
    ========================================================= */
-document.querySelectorAll(".tab-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
-    document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById("tab-"+btn.dataset.tab).classList.add("active");
-  });
-});
-
-/* =========================================================
-   TEAM CALENDAR (vacaciones / días de equipo)
-   ========================================================= */
-const calendarGrid = document.getElementById("calendarGrid");
-const monthLabel = document.getElementById("monthLabel");
-const teamLegend = document.getElementById("teamLegend");
-
-function renderTeamLegend(){
-  teamLegend.innerHTML = "";
+function renderChips(){
+  const wrap=document.getElementById("personChips");
+  wrap.innerHTML="";
   TEAM.forEach(p=>{
-    const item = document.createElement("div");
-    item.className = "legend-item";
-    item.innerHTML = `<div class="legend-swatch" style="background:${p.color}"></div>${p.name}`;
-    teamLegend.appendChild(item);
+    const chip=document.createElement("span");
+    chip.className="person-chip "+(activePersonIds.has(p.id)?"active":"inactive");
+    chip.style.background=activePersonIds.has(p.id)?p.color+"22":"#f1f5f9";
+    chip.style.borderColor=activePersonIds.has(p.id)?p.color:"#e2e8f0";
+    chip.style.color=activePersonIds.has(p.id)?p.color:var_text_light();
+    chip.innerHTML=`
+      <span class="chip-dot" style="background:${p.color}"></span>
+      <span class="chip-name">${p.name.split(" ")[0]}</span>
+      <span class="chip-edit" title="Editar persona" data-id="${p.id}">✏️</span>
+    `;
+    // toggle visibility
+    chip.addEventListener("click",(e)=>{
+      if(e.target.classList.contains("chip-edit")) return;
+      if(activePersonIds.has(p.id)){
+        if(activePersonIds.size>1) activePersonIds.delete(p.id);
+      } else {
+        activePersonIds.add(p.id);
+      }
+      renderChips();
+      renderCalendars();
+    });
+    // edit
+    chip.querySelector(".chip-edit").addEventListener("click",(e)=>{
+      e.stopPropagation();
+      openPersonModal(p.id);
+    });
+    wrap.appendChild(chip);
   });
 }
+function var_text_light(){return "#64748b";}
 
-// Devuelve un array de {person, label} para todas las personas con un día marcado en esa fecha
-function getTeamEntriesForDate(dateStr){
-  const entries = [];
+/* =========================================================
+   CALENDAR RENDER
+   ========================================================= */
+function renderCalendars(){
+  renderOneCalendar(currentYear, currentMonth, "calGrid1", "calTitle1");
+  let m2=currentMonth+1, y2=currentYear;
+  if(m2>11){m2=0;y2++;}
+  renderOneCalendar(y2, m2, "calGrid2", "calTitle2");
+}
+
+function getEntriesForDate(dateStr){
+  const entries=[];
   TEAM.forEach(p=>{
+    if(!activePersonIds.has(p.id)) return;
     for(const id in requestsData){
-      const r = requestsData[id];
-      if(r.personId !== p.id) continue;
-      if(dateStr >= r.start && dateStr <= r.end){
+      const r=requestsData[id];
+      if(r.personId!==p.id) continue;
+      if(dateStr>=r.start&&dateStr<=r.end){
         let label;
-        if(r.type === "vac2026" || r.type === "vac2025") label = "Vacaciones";
-        else if(r.type === "libre") label = "Libre disp.";
-        else if(r.type === "navidad") label = "Navideño";
-        entries.push({person:p, label});
-        break; // una entrada por persona por día
+        if(r.type==="vac2026"||r.type==="vac2025") label="Vacaciones";
+        else if(r.type==="libre") label="Libre";
+        else if(r.type==="navidad") label="Navideño";
+        entries.push({person:p,label});
+        break;
       }
     }
   });
   return entries;
 }
 
-function renderCalendar(){
-  monthLabel.textContent = `${MONTH_NAMES[currentMonth]} ${currentYear}`;
-  calendarGrid.innerHTML = "";
-
-  DOW_NAMES.forEach(d=>{
-    const el = document.createElement("div");
-    el.className = "dow";
-    el.textContent = d;
-    calendarGrid.appendChild(el);
+function renderOneCalendar(year, month, gridId, titleId){
+  document.getElementById(titleId).textContent=`${MONTH_NAMES[month]} ${year}`;
+  const grid=document.getElementById(gridId);
+  grid.innerHTML="";
+  // DOW headers
+  DOW.forEach(d=>{
+    const el=document.createElement("div");
+    el.className="cal-dow";el.textContent=d;grid.appendChild(el);
   });
-
-  const firstDay = new Date(currentYear, currentMonth, 1);
-  const startOffset = (firstDay.getDay() === 0) ? 6 : firstDay.getDay()-1; // lunes = 0
-  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
-
-  for(let i=0;i<startOffset;i++){
-    const empty = document.createElement("div");
-    empty.className = "day-cell empty";
-    calendarGrid.appendChild(empty);
+  const firstDay=new Date(year,month,1);
+  const offset=(firstDay.getDay()===0)?6:firstDay.getDay()-1;
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const today=dateKey(new Date());
+  for(let i=0;i<offset;i++){
+    const e=document.createElement("div");e.className="cal-day empty";grid.appendChild(e);
   }
+  for(let day=1;day<=daysInMonth;day++){
+    const d=new Date(year,month,day);
+    const key=dateKey(d);
+    const cell=document.createElement("div");
+    cell.className="cal-day";
+    if(isWeekend(d)) cell.classList.add("weekend");
+    if(key===today) cell.classList.add("today");
+    const hol=isHoliday(d);
+    if(hol) cell.classList.add("holiday");
 
-  for(let day=1; day<=daysInMonth; day++){
-    const d = new Date(currentYear, currentMonth, day);
-    const key = dateKey(d);
-    const cell = document.createElement("div");
-    cell.className = "day-cell";
-    cell.dataset.date = key;
-
-    const numEl = document.createElement("div");
-    numEl.className = "day-num";
-    numEl.textContent = day;
+    const numEl=document.createElement("div");
+    numEl.className="day-num";numEl.textContent=day;
     cell.appendChild(numEl);
 
-    const holiday = isHoliday(d);
-    const weekend = isWeekend(d);
-
-    if(weekend){
-      cell.classList.add("weekend");
-    } else if(holiday){
-      cell.classList.add("holiday");
-      const tag = document.createElement("div");
-      tag.className = "day-tag";
-      tag.textContent = "Festivo";
-      cell.appendChild(tag);
+    if(hol&&!isWeekend(d)){
+      const hl=document.createElement("div");
+      hl.className="day-holiday-label";hl.textContent=hol;hl.title=hol;
+      cell.appendChild(hl);
     }
 
-    if(!weekend){
-      const entries = getTeamEntriesForDate(key);
+    if(!isWeekend(d)){
+      const entries=getEntriesForDate(key);
       entries.forEach(entry=>{
-        const tag = document.createElement("div");
-        tag.className = "day-tag";
-        tag.style.background = entry.person.color;
-        tag.style.color = "#fff";
-        tag.title = `${entry.person.name} — ${entry.label}`;
-        tag.textContent = `${entry.person.name.split(" ")[0]}: ${entry.label}`;
+        const tag=document.createElement("div");
+        tag.className="person-tag";
+        tag.style.background=entry.person.color;
+        tag.title=`${entry.person.name} — ${entry.label}`;
+        tag.textContent=`${entry.person.name.split(" ")[0]}`;
         cell.appendChild(tag);
       });
     }
-
-    calendarGrid.appendChild(cell);
+    grid.appendChild(cell);
   }
 }
 
-document.getElementById("prevMonth").addEventListener("click", ()=>{
-  currentMonth--;
-  if(currentMonth < 0){ currentMonth = 11; currentYear--; }
-  renderCalendar();
+document.getElementById("prevMonth").addEventListener("click",()=>{
+  currentMonth--;if(currentMonth<0){currentMonth=11;currentYear--;}
+  renderCalendars();
 });
-document.getElementById("nextMonth").addEventListener("click", ()=>{
-  currentMonth++;
-  if(currentMonth > 11){ currentMonth = 0; currentYear++; }
-  renderCalendar();
+document.getElementById("nextMonth").addEventListener("click",()=>{
+  currentMonth++;if(currentMonth>11){currentMonth=0;currentYear++;}
+  renderCalendars();
 });
-document.getElementById("todayBtn").addEventListener("click", ()=>{
-  const now = new Date();
-  currentMonth = now.getMonth();
-  currentYear = now.getFullYear();
-  renderCalendar();
+document.getElementById("todayBtn").addEventListener("click",()=>{
+  const n=new Date();currentMonth=n.getMonth();currentYear=n.getFullYear();
+  renderCalendars();
 });
 
 /* =========================================================
-   HOLIDAY REQUESTS TAB
+   PENDING GRID
    ========================================================= */
-const pendingGrid = document.getElementById("pendingGrid");
-const reqPerson = document.getElementById("reqPerson");
-
-TEAM.forEach(p=>{
-  const opt = document.createElement("option");
-  opt.value = p.id;
-  opt.textContent = p.name;
-  reqPerson.appendChild(opt);
-});
-
 function renderPendingGrid(){
-  pendingGrid.innerHTML = "";
+  const grid=document.getElementById("pendingGrid");
+  grid.innerHTML="";
   TEAM.forEach(p=>{
-    const card = document.createElement("div");
-    card.className = "pending-card";
-    const val = pendingPrevYear[p.id] != null ? pendingPrevYear[p.id] : 0;
-    card.innerHTML = `
-      <div class="name">${p.name}</div>
-      <label>Días pendientes vacaciones 2025 (caducaron 30 abr 2026)</label>
+    const val=pendingPrevYear[p.id]!=null?pendingPrevYear[p.id]:0;
+    const card=document.createElement("div");
+    card.className="pending-card";
+    card.innerHTML=`
+      <div class="p-name">
+        <span class="p-dot" style="background:${p.color}"></span>
+        ${p.name}
+      </div>
+      <label>Días pendientes 2025</label>
       <input type="number" min="0" step="0.5" value="${val}" data-person="${p.id}">
     `;
-    pendingGrid.appendChild(card);
+    grid.appendChild(card);
   });
-
-  pendingGrid.querySelectorAll("input").forEach(input=>{
-    input.addEventListener("change", ()=>{
-      setPendingPrevYear(input.dataset.person, input.value);
-    });
+  grid.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("change",()=>setPendingPrevYear(inp.dataset.person,inp.value));
   });
 }
 
-document.getElementById("addRequestBtn").addEventListener("click", ()=>{
-  const personId = reqPerson.value;
-  const type = document.getElementById("reqType").value;
-  const start = document.getElementById("reqStart").value;
-  const end = document.getElementById("reqEnd").value;
+/* =========================================================
+   REQ PERSON SELECT
+   ========================================================= */
+function populateReqPerson(){
+  const sel=document.getElementById("reqPerson");
+  const current=sel.value;
+  sel.innerHTML="";
+  TEAM.forEach(p=>{
+    const o=document.createElement("option");
+    o.value=p.id;o.textContent=p.name;sel.appendChild(o);
+  });
+  if(current&&TEAM.find(p=>p.id===current)) sel.value=current;
+}
 
-  if(!start || !end){
-    alert("Por favor selecciona fecha de inicio y fin.");
-    return;
-  }
-  if(end < start){
-    alert("La fecha de fin no puede ser anterior a la fecha de inicio.");
-    return;
-  }
-
-  const days = countWorkdays(start, end);
-  if(days === 0){
-    alert("El rango seleccionado no contiene días laborables (festivos/fines de semana).");
-    return;
-  }
-
-  addRequest({personId, type, start, end, days});
-
-  document.getElementById("reqStart").value = "";
-  document.getElementById("reqEnd").value = "";
+/* =========================================================
+   ADD REQUEST
+   ========================================================= */
+document.getElementById("addRequestBtn").addEventListener("click",()=>{
+  const personId=document.getElementById("reqPerson").value;
+  const type=document.getElementById("reqType").value;
+  const start=document.getElementById("reqStart").value;
+  const end=document.getElementById("reqEnd").value;
+  if(!start||!end){alert("Selecciona fecha de inicio y fin.");return;}
+  if(end<start){alert("La fecha fin no puede ser anterior al inicio.");return;}
+  const days=countWorkdays(start,end);
+  if(days===0){alert("No hay días laborables en ese rango.");return;}
+  addRequest({personId,type,start,end,days});
+  document.getElementById("reqStart").value="";
+  document.getElementById("reqEnd").value="";
 });
 
-const typeLabels = {
-  vac2026: "Vacaciones 2026",
-  vac2025: "Vacaciones 2025 pend.",
-  libre: "Libre disposición",
-  navidad: "Navideño"
-};
-const typeBadges = {
-  vac2026: "badge-blue",
-  vac2025: "badge-yellow",
-  libre: "badge-green",
-  navidad: "badge-red"
-};
+/* =========================================================
+   REQUESTS TABLE
+   ========================================================= */
+const typeLabels={vac2026:"Vacaciones 2026",vac2025:"Vac. 2025 pend.",libre:"Libre disposición",navidad:"Navideño"};
+const typeBadges={vac2026:"badge-blue",vac2025:"badge-yellow",libre:"badge-green",navidad:"badge-red"};
 
 function renderRequestsTable(){
-  const tbody = document.getElementById("requestsTableBody");
-  tbody.innerHTML = "";
-
-  const entries = Object.entries(requestsData).sort((a,b)=> a[1].start.localeCompare(b[1].start));
-
-  if(entries.length === 0){
-    tbody.innerHTML = `<tr><td colspan="6" class="small-text" style="text-align:center;padding:20px;">No hay solicitudes registradas</td></tr>`;
+  const tbody=document.getElementById("requestsTableBody");
+  tbody.innerHTML="";
+  const entries=Object.entries(requestsData).sort((a,b)=>a[1].start.localeCompare(b[1].start));
+  if(!entries.length){
+    tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-light);">No hay solicitudes registradas</td></tr>`;
     return;
   }
-
-  entries.forEach(([id, r])=>{
-    const person = TEAM.find(p=>p.id===r.personId);
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${person ? person.name : r.personId}</td>
+  entries.forEach(([id,r])=>{
+    const p=getPerson(r.personId);
+    const tr=document.createElement("tr");
+    const dot=p?`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${p.color};margin-right:6px;"></span>`:"";
+    tr.innerHTML=`
+      <td>${dot}${p?p.name:r.personId}</td>
       <td><span class="badge ${typeBadges[r.type]||'badge-blue'}">${typeLabels[r.type]||r.type}</span></td>
       <td>${formatDateEs(new Date(r.start+"T00:00:00"))}</td>
       <td>${formatDateEs(new Date(r.end+"T00:00:00"))}</td>
-      <td style="text-align:center;font-weight:700;">${r.days}</td>
+      <td style="text-align:center;font-weight:800;">${r.days}</td>
       <td><button class="btn-delete" data-id="${id}">Eliminar</button></td>
     `;
     tbody.appendChild(tr);
   });
-
   tbody.querySelectorAll(".btn-delete").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
+    btn.addEventListener("click",()=>{
       if(confirm("¿Eliminar esta solicitud?")) deleteRequest(btn.dataset.id);
     });
   });
 }
 
-/* Balance table */
-const ALLOWANCES = {
-  vac2026: 22,
-  libre: 7,
-  navidad: 3
-};
-
+/* =========================================================
+   BALANCE TABLE
+   ========================================================= */
+const ALLOWANCES={vac2026:22,libre:7,navidad:3};
 function renderBalanceTable(){
-  const tbody = document.getElementById("balanceTableBody");
-  tbody.innerHTML = "";
-
+  const tbody=document.getElementById("balanceTableBody");
+  tbody.innerHTML="";
   TEAM.forEach(p=>{
-    const used = {vac2026:0, vac2025:0, libre:0, navidad:0};
+    const used={vac2026:0,vac2025:0,libre:0,navidad:0};
     Object.values(requestsData).forEach(r=>{
-      if(r.personId === p.id && used[r.type] !== undefined){
-        used[r.type] += r.days;
-      }
+      if(r.personId===p.id&&used[r.type]!==undefined) used[r.type]+=r.days;
     });
-
-    const pendingPrev = pendingPrevYear[p.id] != null ? pendingPrevYear[p.id] : 0;
-    const vac2025Remaining = pendingPrev - used.vac2025;
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td style="font-weight:700;">${p.name}</td>
-      <td>${ALLOWANCES.vac2026 - used.vac2026} / ${ALLOWANCES.vac2026}<br><span class="small-text">(usados: ${used.vac2026})</span></td>
-      <td>${vac2025Remaining.toFixed(1)} / ${pendingPrev}<br><span class="small-text">(usados: ${used.vac2025})</span></td>
-      <td>${ALLOWANCES.libre - used.libre} / ${ALLOWANCES.libre}<br><span class="small-text">(usados: ${used.libre})</span></td>
-      <td>${ALLOWANCES.navidad - used.navidad} / ${ALLOWANCES.navidad}<br><span class="small-text">(usados: ${used.navidad})</span></td>
+    const prev=pendingPrevYear[p.id]||0;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${p.color};margin-right:7px;"></span><strong>${p.name}</strong></td>
+      <td><span class="balance-num">${ALLOWANCES.vac2026-used.vac2026}</span><span class="balance-used">de 22 (usados: ${used.vac2026})</span></td>
+      <td><span class="balance-num">${(prev-used.vac2025).toFixed(1)}</span><span class="balance-used">de ${prev} (usados: ${used.vac2025})</span></td>
+      <td><span class="balance-num">${ALLOWANCES.libre-used.libre}</span><span class="balance-used">de 7 (usados: ${used.libre})</span></td>
+      <td><span class="balance-num">${ALLOWANCES.navidad-used.navidad}</span><span class="balance-used">de 3 (usados: ${used.navidad})</span></td>
     `;
     tbody.appendChild(tr);
   });
 }
 
 /* =========================================================
-   RESET BUTTON / MODAL
+   ADD/EDIT PERSON MODAL
    ========================================================= */
-const resetModal = document.getElementById("resetModal");
-document.getElementById("resetBtn").addEventListener("click", ()=>{
-  resetModal.classList.add("active");
+function buildColorSwatches(){
+  const wrap=document.getElementById("colorSwatches");
+  wrap.innerHTML="";
+  PRESET_COLORS.forEach(c=>{
+    const sw=document.createElement("div");
+    sw.className="color-swatch"+(c===selectedColor?" selected":"");
+    sw.style.background=c;
+    sw.dataset.color=c;
+    sw.addEventListener("click",()=>{
+      selectedColor=c;
+      document.getElementById("customColorPicker").value=c;
+      document.querySelectorAll(".color-swatch").forEach(s=>s.classList.remove("selected"));
+      sw.classList.add("selected");
+    });
+    wrap.appendChild(sw);
+  });
+}
+
+document.getElementById("customColorPicker").addEventListener("input",(e)=>{
+  selectedColor=e.target.value;
+  document.querySelectorAll(".color-swatch").forEach(s=>s.classList.remove("selected"));
 });
-document.getElementById("cancelReset").addEventListener("click", ()=>{
-  resetModal.classList.remove("active");
+
+function openPersonModal(editId=null){
+  editingPersonId=editId;
+  const modal=document.getElementById("personModal");
+  const title=document.getElementById("personModalTitle");
+  const desc=document.getElementById("personModalDesc");
+  const nameInput=document.getElementById("personNameInput");
+  const deleteBtn=document.getElementById("deletePerson");
+
+  if(editId){
+    const p=getPerson(editId);
+    title.textContent="Editar persona";
+    desc.textContent="Cambia el nombre o el color de "+p.name+".";
+    nameInput.value=p.name;
+    selectedColor=p.color;
+    document.getElementById("customColorPicker").value=p.color;
+    // Only allow delete of non-default members
+    const isDefault=DEFAULT_TEAM.find(d=>d.id===editId);
+    deleteBtn.style.display=isDefault?"none":"inline-block";
+  } else {
+    title.textContent="Añadir persona";
+    desc.textContent="Escribe el nombre completo y elige un color.";
+    nameInput.value="";
+    selectedColor=PRESET_COLORS[Math.floor(Math.random()*PRESET_COLORS.length)];
+    document.getElementById("customColorPicker").value=selectedColor;
+    deleteBtn.style.display="none";
+  }
+  buildColorSwatches();
+  modal.classList.add("active");
+  nameInput.focus();
+}
+
+document.getElementById("addPersonBtn").addEventListener("click",()=>openPersonModal());
+document.getElementById("cancelPerson").addEventListener("click",()=>{
+  document.getElementById("personModal").classList.remove("active");
 });
-document.getElementById("confirmReset").addEventListener("click", ()=>{
+document.getElementById("confirmPerson").addEventListener("click",()=>{
+  const name=document.getElementById("personNameInput").value.trim();
+  if(!name){alert("Escribe un nombre.");return;}
+  const color=document.getElementById("customColorPicker").value||selectedColor;
+  if(editingPersonId){
+    savePersonToFirebase({id:editingPersonId,name,color});
+  } else {
+    const id=genId();
+    savePersonToFirebase({id,name,color});
+    activePersonIds.add(id);
+  }
+  document.getElementById("personModal").classList.remove("active");
+});
+document.getElementById("deletePerson").addEventListener("click",()=>{
+  if(!editingPersonId) return;
+  if(confirm("¿Eliminar esta persona? Se perderán sus solicitudes.")) {
+    deletePersonFromFirebase(editingPersonId);
+    activePersonIds.delete(editingPersonId);
+    document.getElementById("personModal").classList.remove("active");
+  }
+});
+
+/* =========================================================
+   RESET MODAL
+   ========================================================= */
+document.getElementById("resetBtn").addEventListener("click",()=>{
+  document.getElementById("resetModal").classList.add("active");
+});
+document.getElementById("cancelReset").addEventListener("click",()=>{
+  document.getElementById("resetModal").classList.remove("active");
+});
+document.getElementById("confirmReset").addEventListener("click",()=>{
   resetAllData();
-  resetModal.classList.remove("active");
+  document.getElementById("resetModal").classList.remove("active");
+});
+
+// Close modals clicking overlay
+document.querySelectorAll(".modal-overlay").forEach(m=>{
+  m.addEventListener("click",(e)=>{
+    if(e.target===m) m.classList.remove("active");
+  });
 });
 
 /* =========================================================
    INIT
    ========================================================= */
-renderTeamLegend();
-renderCalendar();
+renderChips();
+renderCalendars();
+populateReqPerson();
 renderPendingGrid();
 renderRequestsTable();
 renderBalanceTable();
 </script>
-
 </body>
 </html>
