@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vacaciones BD</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+  :root{
+    --blue:#2563eb;
+    --blue-light:#dbeafe;
+    --green:#16a34a;
+    --green-light:#dcfce7;
+    --yellow:#eab308;
+    --yellow-light:#fef9c3;
+    --red:#dc2626;
+    --red-light:#fee2e2;
+    --orange:#f59e0b;
+    --orange-light:#fef3c7;
+    --purple:#9333ea;
+    --purple-light:#f3e8ff;
+    --gray:#6b7280;
+    --gray-light:#f3f4f6;
+    --bg:#f8fafc;
+    --card:#ffffff;
+    --border:#e2e8f0;
+    --text:#1e293b;
+    --text-light:#64748b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;}
+  body{background:var(--bg);color:var(--text);min-height:100vh;}
+
+  header{
+    background:var(--card);
+    border-bottom:1px solid var(--border);
+    padding:16px 24px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:12px;
+    position:sticky;
+    top:0;
+    z-index:100;
+    box-shadow:0 1px 3px rgba(0,0,0,0.04);
+  }
+  header h1{font-size:1.25rem;font-weight:700;color:var(--text);}
+  header h1 span{color:var(--blue);}
+
+  .status-area{display:flex;align-items:center;gap:16px;}
+  .conn-status{display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--text-light);}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--gray);transition:background .3s;}
+  .dot.synced{background:var(--green);}
+  .dot.saving{background:var(--orange);animation:pulse 1s infinite;}
+  .dot.error{background:var(--red);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+  .reset-btn{
+    background:var(--red-light);
+    color:var(--red);
+    border:1px solid var(--red);
+    padding:8px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:0.85rem;
+    font-weight:600;
+    transition:.2s;
+  }
+  .reset-btn:hover{background:var(--red);color:#fff;}
+
+  nav.tabs{
+    display:flex;
+    background:var(--card);
+    border-bottom:1px solid var(--border);
+    overflow-x:auto;
+    position:sticky;
+    top:65px;
+    z-index:99;
+  }
+  nav.tabs button{
+    padding:14px 22px;
+    border:none;
+    background:none;
+    cursor:pointer;
+    font-size:0.95rem;
+    font-weight:600;
+    color:var(--text-light);
+    border-bottom:3px solid transparent;
+    transition:.2s;
+    white-space:nowrap;
+  }
+  nav.tabs button:hover{color:var(--blue);background:var(--gray-light);}
+  nav.tabs button.active{color:var(--blue);border-bottom-color:var(--blue);}
+
+  main{padding:24px;max-width:1400px;margin:0 auto;}
+  .tab-content{display:none;}
+  .tab-content.active{display:block;animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 1px 2px rgba(0,0,0,0.03);
+  }
+  .card h2{font-size:1.1rem;margin-bottom:16px;color:var(--text);}
+  .card h3{font-size:1rem;margin-bottom:10px;color:var(--text);}
+
+  /* ATTENDANCE TAB */
+  .attendance-controls{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+  select, input, button.std-btn{
+    padding:8px 12px;
+    border:1px solid var(--border);
+    border-radius:6px;
+    font-size:0.9rem;
+    background:#fff;
+    color:var(--text);
+  }
+  .month-nav{display:flex;align-items:center;gap:8px;}
+  .month-nav button{
+    border:1px solid var(--border);
+    background:#fff;
+    border-radius:6px;
+    width:34px;height:34px;
+    cursor:pointer;
+    font-size:1rem;
+    display:flex;align-items:center;justify-content:center;
+    transition:.2s;
+  }
+  .month-nav button:hover{background:var(--blue-light);color:var(--blue);}
+  .month-label{font-weight:700;min-width:160px;text-align:center;font-size:1rem;}
+
+  .calendar-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:6px;
+    margin-top:12px;
+  }
+  .calendar-grid .dow{
+    text-align:center;
+    font-size:0.78rem;
+    font-weight:700;
+    color:var(--text-light);
+    padding:6px 0;
+    text-transform:uppercase;
+  }
+  .day-cell{
+    min-height:70px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:6px;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    align-items:stretch;
+    gap:2px;
+    transition:.15s;
+    position:relative;
+    background:#fff;
+  }
+  .day-cell.empty{background:transparent;border:none;}
+  .day-num{font-size:0.85rem;font-weight:700;}
+  .day-tag{font-size:0.62rem;font-weight:700;text-align:left;padding:2px 4px;border-radius:4px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .day-cell.weekend{background:#f8fafc;opacity:.55;cursor:default;}
+  .day-cell.weekend:hover{transform:none;box-shadow:none;}
+  .day-cell.holiday{background:var(--red-light);border-color:var(--red);}
+  .day-cell.holiday .day-tag{background:var(--red);color:#fff;}
+
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+    margin-top:16px;
+  }
+  .summary-box{
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:14px;
+    text-align:center;
+  }
+  .summary-box .label{font-size:0.78rem;color:var(--text-light);text-transform:uppercase;font-weight:600;letter-spacing:.03em;}
+  .summary-box .value{font-size:1.8rem;font-weight:800;margin-top:6px;}
+  .summary-box .sub{font-size:0.75rem;color:var(--text-light);margin-top:4px;}
+  .pct-green{color:var(--green);}
+  .pct-amber{color:var(--orange);}
+  .pct-red{color:var(--red);}
+
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;font-size:0.8rem;}
+  .legend-item{display:flex;align-items:center;gap:6px;}
+  .legend-swatch{width:14px;height:14px;border-radius:3px;}
+
+  /* WORK SHIFTS TAB */
+  table{width:100%;border-collapse:collapse;}
+  table th, table td{
+    padding:10px 12px;
+    text-align:left;
+    border-bottom:1px solid var(--border);
+    font-size:0.88rem;
+  }
+  table th{background:var(--gray-light);font-weight:700;color:var(--text);}
+  table tr:hover td{background:#fafbfc;}
+  .badge{
+    display:inline-block;
+    padding:3px 10px;
+    border-radius:12px;
+    font-size:0.75rem;
+    font-weight:700;
+  }
+  .badge-blue{background:var(--blue-light);color:var(--blue);}
+  .badge-yellow{background:var(--yellow-light);color:#92670c;}
+  .badge-green{background:var(--green-light);color:var(--green);}
+  .badge-red{background:var(--red-light);color:var(--red);}
+
+  /* HOLIDAY REQUESTS TAB */
+  .pending-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:14px;
+  }
+  .pending-card{
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:14px;
+  }
+  .pending-card .name{font-weight:700;margin-bottom:8px;}
+  .pending-card label{font-size:0.78rem;color:var(--text-light);display:block;margin-bottom:4px;}
+  .pending-card input{width:100%;}
+
+  .form-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;}
+  .form-group{display:flex;flex-direction:column;gap:4px;}
+  .form-group label{font-size:0.78rem;color:var(--text-light);font-weight:600;}
+  .form-group select, .form-group input{min-width:160px;}
+  .btn-primary{
+    background:var(--blue);
+    color:#fff;
+    border:none;
+    padding:9px 18px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:0.9rem;
+    transition:.2s;
+  }
+  .btn-primary:hover{background:#1d4ed8;}
+  .btn-delete{
+    background:none;
+    border:1px solid var(--red);
+    color:var(--red);
+    border-radius:6px;
+    padding:4px 10px;
+    cursor:pointer;
+    font-size:0.78rem;
+    font-weight:700;
+  }
+  .btn-delete:hover{background:var(--red);color:#fff;}
+
+  .balance-table td:nth-child(n+2){text-align:center;}
+
+  /* MODAL */
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.45);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+  }
+  .modal-overlay.active{display:flex;}
+  .modal-box{
+    background:#fff;
+    border-radius:10px;
+    padding:24px;
+    max-width:420px;
+    width:90%;
+    box-shadow:0 10px 30px rgba(0,0,0,0.2);
+  }
+  .modal-box h3{margin-bottom:10px;}
+  .modal-box p{color:var(--text-light);font-size:0.9rem;margin-bottom:18px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;}
+  .modal-actions button{
+    padding:8px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:0.9rem;
+    border:1px solid var(--border);
+    background:#fff;
+  }
+  .modal-actions .confirm{background:var(--red);color:#fff;border:none;}
+
+  .small-text{font-size:0.8rem;color:var(--text-light);}
+  .section-divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+
+  @media (max-width:640px){
+    header{padding:12px 16px;}
+    main{padding:12px;}
+    .calendar-grid{gap:3px;}
+    .day-cell{min-height:54px;padding:3px;}
+    .day-num{font-size:0.75rem;}
+    .day-tag{font-size:0.55rem;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📅 <span>Vacaciones BD</span></h1>
+  <div class="status-area">
+    <div class="conn-status">
+      <div class="dot" id="connDot"></div>
+      <span id="connText">Conectando...</span>
+    </div>
+    <button class="reset-btn" id="resetBtn">🗑️ Reset datos</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="calendar">Calendar</button>
+  <button class="tab-btn" data-tab="holidays">Holiday requests</button>
+</nav>
+
+<main>
+
+  <!-- ================= CALENDAR TAB ================= -->
+  <div class="tab-content active" id="tab-calendar">
+    <div class="card">
+      <div class="attendance-controls">
+        <div class="month-nav">
+          <button id="prevMonth">‹</button>
+          <div class="month-label" id="monthLabel"></div>
+          <button id="nextMonth">›</button>
+        </div>
+        <button class="std-btn" id="todayBtn">Hoy</button>
+      </div>
+
+      <div class="calendar-grid" id="calendarGrid"></div>
+
+      <div class="legend" id="teamLegend"></div>
+      <div class="legend" style="margin-top:8px;">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--red)"></div>Festivo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= HOLIDAY REQUESTS TAB ================= -->
+  <div class="tab-content" id="tab-holidays">
+
+    <div class="card">
+      <h2>Días pendientes del año anterior (2025) — caducaron 30 abr 2026</h2>
+      <p class="small-text" style="margin-bottom:14px;">Introduce manualmente los días de vacaciones 2025 pendientes de cada persona (se registran como referencia).</p>
+      <div class="pending-grid" id="pendingGrid"></div>
+    </div>
+
+    <div class="card">
+      <h2>➕ Añadir solicitud de vacaciones / días</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Persona</label>
+          <select id="reqPerson"></select>
+        </div>
+        <div class="form-group">
+          <label>Tipo de día</label>
+          <select id="reqType">
+            <option value="vac2026">Vacaciones 2026 (22 días, caduca 30 abr 2027)</option>
+            <option value="vac2025">Vacaciones 2025 pendientes (caducaron 30 abr 2026)</option>
+            <option value="libre">Días de libre disposición (7 días, caduca 31 dic 2026)</option>
+            <option value="navidad">Días navideños (3 días)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fecha inicio</label>
+          <input type="date" id="reqStart">
+        </div>
+        <div class="form-group">
+          <label>Fecha fin</label>
+          <input type="date" id="reqEnd">
+        </div>
+        <div class="form-group">
+          <label>&nbsp;</label>
+          <button class="btn-primary" id="addRequestBtn">Añadir solicitud</button>
+        </div>
+      </div>
+      <p class="small-text">💡 Días navideños: elige fechas dentro del rango 21-23 dic o 28-30 dic 2026.</p>
+    </div>
+
+    <div class="card">
+      <h2>📋 Solicitudes registradas</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Persona</th>
+            <th>Tipo</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Días laborables</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="requestsTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>📊 Saldo por tipo de día</h2>
+      <table class="balance-table">
+        <thead>
+          <tr>
+            <th>Persona</th>
+            <th>Vac. 2026<br><span class="small-text">(22 días)</span></th>
+            <th>Vac. 2025 pend.<br><span class="small-text">(referencia)</span></th>
+            <th>Libre disposición<br><span class="small-text">(7 días)</span></th>
+            <th>Navideños<br><span class="small-text">(3 días)</span></th>
+          </tr>
+        </thead>
+        <tbody id="balanceTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- Reset confirmation modal -->
+<div class="modal-overlay" id="resetModal">
+  <div class="modal-box">
+    <h3>⚠️ Confirmar borrado total</h3>
+    <p>Esta acción eliminará permanentemente todos los datos de asistencia, vacaciones y días pendientes para todo el equipo. No se puede deshacer.</p>
+    <div class="modal-actions">
+      <button id="cancelReset">Cancelar</button>
+      <button class="confirm" id="confirmReset">Borrar todo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   FIREBASE CONFIG
+   =========================================================
+   IMPORTANTE: Sustituye estos valores por los de tu propio
+   proyecto Firebase. Crea un proyecto en https://console.firebase.google.com,
+   activa "Realtime Database" y nómbralo "BDHolidays" (o usa ese nombre
+   para la instancia/región de la base de datos). Copia aquí la config
+   que te proporciona Firebase (Configuración del proyecto > General >
+   Tus apps > SDK setup and configuration).
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyC8q647pxMrV6oat8IJWdLK2gtkWSRzUJk",
+  authDomain: "bdholidays-d8d22.firebaseapp.com",
+  databaseURL: "https://bdholidays-d8d22-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "bdholidays-d8d22",
+  storageBucket: "bdholidays-d8d22.firebasestorage.app",
+  messagingSenderId: "232225249959",
+  appId: "1:232225249959:web:7d1f9d7706f2609a891982"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* =========================================================
+   DATA / CONSTANTS
+   ========================================================= */
+const TEAM = [
+  {id:"almudena", name:"Almudena de la Osada", location:"España, Madrid", color:"#2563eb"},
+  {id:"marco",    name:"Marco Buso",          location:"Italia, Roma",   color:"#16a34a"},
+  {id:"nicolas",  name:"Nicolas Triviño",     location:"España, Madrid", color:"#f59e0b"},
+  {id:"david",    name:"David Otero",         location:"España, Bilbao", color:"#9333ea"},
+  {id:"alejandro",name:"Alejandro Barrios",   location:"España, Madrid", color:"#0d9488"}
+];
+
+// Festivos Madrid 2026 (YYYY-MM-DD => nombre)
+const HOLIDAYS_2026 = {
+  "2026-01-01": {name:"Año Nuevo", scope:"Nacional"},
+  "2026-01-06": {name:"Epifanía del Señor", scope:"Nacional"},
+  "2026-04-02": {name:"Jueves Santo", scope:"Nacional"},
+  "2026-04-03": {name:"Viernes Santo", scope:"Nacional"},
+  "2026-05-01": {name:"Fiesta del Trabajo", scope:"Nacional"},
+  "2026-05-15": {name:"San Isidro", scope:"Local (Madrid)"},
+  "2026-10-12": {name:"Fiesta Nacional de España", scope:"Nacional"},
+  "2026-11-09": {name:"La Almudena", scope:"Local (Madrid)"},
+  "2026-12-08": {name:"La Inmaculada Concepción", scope:"Nacional"},
+  "2026-12-25": {name:"Natividad del Señor", scope:"Nacional"}
+};
+
+const MONTH_NAMES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const DOW_NAMES = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+let requestsData = {};     // { requestId: {personId, type, start, end, days} }
+let pendingPrevYear = {};  // { personId: number }
+
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+
+/* =========================================================
+   UTILITIES
+   ========================================================= */
+function pad(n){ return n.toString().padStart(2,"0"); }
+function dateKey(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function isWeekend(d){ const day = d.getDay(); return day === 0 || day === 6; }
+function isHoliday(d){ return HOLIDAYS_2026[dateKey(d)] || null; }
+function formatDateEs(d){
+  return d.toLocaleDateString("es-ES", {day:"2-digit", month:"2-digit", year:"numeric"});
+}
+
+// Calcula días laborables (lun-vie, sin festivos) entre dos fechas (incluidas)
+function countWorkdays(startStr, endStr){
+  const start = new Date(startStr+"T00:00:00");
+  const end = new Date(endStr+"T00:00:00");
+  if(isNaN(start) || isNaN(end) || end < start) return 0;
+  let count = 0;
+  const d = new Date(start);
+  while(d <= end){
+    if(!isWeekend(d) && !isHoliday(d)) count++;
+    d.setDate(d.getDate()+1);
+  }
+  return count;
+}
+
+/* =========================================================
+   CONNECTION STATUS
+   ========================================================= */
+const connDot = document.getElementById("connDot");
+const connText = document.getElementById("connText");
+
+function setStatus(state){
+  connDot.className = "dot " + state;
+  if(state === "synced") connText.textContent = "Sincronizado";
+  else if(state === "saving") connText.textContent = "Guardando...";
+  else if(state === "error") connText.textContent = "Error de conexión";
+  else connText.textContent = "Conectando...";
+}
+
+db.ref(".info/connected").on("value", snap => {
+  if(snap.val() === true) setStatus("synced");
+  else setStatus("error");
+});
+
+/* =========================================================
+   FIREBASE LISTENERS (real-time sync)
+   ========================================================= */
+db.ref("requests").on("value", snap => {
+  requestsData = snap.val() || {};
+  renderRequestsTable();
+  renderBalanceTable();
+  renderCalendar();
+}, () => setStatus("error"));
+
+db.ref("pendingPrevYear").on("value", snap => {
+  pendingPrevYear = snap.val() || {};
+  renderPendingGrid();
+  renderBalanceTable();
+}, () => setStatus("error"));
+
+/* =========================================================
+   WRITE HELPERS
+   ========================================================= */
+function addRequest(reqObj){
+  setStatus("saving");
+  const newRef = db.ref("requests").push();
+  newRef.set(reqObj).then(()=>setStatus("synced")).catch(()=>setStatus("error"));
+}
+
+function deleteRequest(reqId){
+  setStatus("saving");
+  db.ref(`requests/${reqId}`).remove().then(()=>setStatus("synced")).catch(()=>setStatus("error"));
+}
+
+function setPendingPrevYear(personId, value){
+  setStatus("saving");
+  db.ref(`pendingPrevYear/${personId}`).set(Number(value) || 0)
+    .then(()=>setStatus("synced")).catch(()=>setStatus("error"));
+}
+
+function resetAllData(){
+  setStatus("saving");
+  Promise.all([
+    db.ref("requests").remove(),
+    db.ref("pendingPrevYear").remove()
+  ]).then(()=>setStatus("synced")).catch(()=>setStatus("error"));
+}
+
+/* =========================================================
+   TABS
+   ========================================================= */
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-"+btn.dataset.tab).classList.add("active");
+  });
+});
+
+/* =========================================================
+   TEAM CALENDAR (vacaciones / días de equipo)
+   ========================================================= */
+const calendarGrid = document.getElementById("calendarGrid");
+const monthLabel = document.getElementById("monthLabel");
+const teamLegend = document.getElementById("teamLegend");
+
+function renderTeamLegend(){
+  teamLegend.innerHTML = "";
+  TEAM.forEach(p=>{
+    const item = document.createElement("div");
+    item.className = "legend-item";
+    item.innerHTML = `<div class="legend-swatch" style="background:${p.color}"></div>${p.name}`;
+    teamLegend.appendChild(item);
+  });
+}
+
+// Devuelve un array de {person, label} para todas las personas con un día marcado en esa fecha
+function getTeamEntriesForDate(dateStr){
+  const entries = [];
+  TEAM.forEach(p=>{
+    for(const id in requestsData){
+      const r = requestsData[id];
+      if(r.personId !== p.id) continue;
+      if(dateStr >= r.start && dateStr <= r.end){
+        let label;
+        if(r.type === "vac2026" || r.type === "vac2025") label = "Vacaciones";
+        else if(r.type === "libre") label = "Libre disp.";
+        else if(r.type === "navidad") label = "Navideño";
+        entries.push({person:p, label});
+        break; // una entrada por persona por día
+      }
+    }
+  });
+  return entries;
+}
+
+function renderCalendar(){
+  monthLabel.textContent = `${MONTH_NAMES[currentMonth]} ${currentYear}`;
+  calendarGrid.innerHTML = "";
+
+  DOW_NAMES.forEach(d=>{
+    const el = document.createElement("div");
+    el.className = "dow";
+    el.textContent = d;
+    calendarGrid.appendChild(el);
+  });
+
+  const firstDay = new Date(currentYear, currentMonth, 1);
+  const startOffset = (firstDay.getDay() === 0) ? 6 : firstDay.getDay()-1; // lunes = 0
+  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+
+  for(let i=0;i<startOffset;i++){
+    const empty = document.createElement("div");
+    empty.className = "day-cell empty";
+    calendarGrid.appendChild(empty);
+  }
+
+  for(let day=1; day<=daysInMonth; day++){
+    const d = new Date(currentYear, currentMonth, day);
+    const key = dateKey(d);
+    const cell = document.createElement("div");
+    cell.className = "day-cell";
+    cell.dataset.date = key;
+
+    const numEl = document.createElement("div");
+    numEl.className = "day-num";
+    numEl.textContent = day;
+    cell.appendChild(numEl);
+
+    const holiday = isHoliday(d);
+    const weekend = isWeekend(d);
+
+    if(weekend){
+      cell.classList.add("weekend");
+    } else if(holiday){
+      cell.classList.add("holiday");
+      const tag = document.createElement("div");
+      tag.className = "day-tag";
+      tag.textContent = "Festivo";
+      cell.appendChild(tag);
+    }
+
+    if(!weekend){
+      const entries = getTeamEntriesForDate(key);
+      entries.forEach(entry=>{
+        const tag = document.createElement("div");
+        tag.className = "day-tag";
+        tag.style.background = entry.person.color;
+        tag.style.color = "#fff";
+        tag.title = `${entry.person.name} — ${entry.label}`;
+        tag.textContent = `${entry.person.name.split(" ")[0]}: ${entry.label}`;
+        cell.appendChild(tag);
+      });
+    }
+
+    calendarGrid.appendChild(cell);
+  }
+}
+
+document.getElementById("prevMonth").addEventListener("click", ()=>{
+  currentMonth--;
+  if(currentMonth < 0){ currentMonth = 11; currentYear--; }
+  renderCalendar();
+});
+document.getElementById("nextMonth").addEventListener("click", ()=>{
+  currentMonth++;
+  if(currentMonth > 11){ currentMonth = 0; currentYear++; }
+  renderCalendar();
+});
+document.getElementById("todayBtn").addEventListener("click", ()=>{
+  const now = new Date();
+  currentMonth = now.getMonth();
+  currentYear = now.getFullYear();
+  renderCalendar();
+});
+
+/* =========================================================
+   HOLIDAY REQUESTS TAB
+   ========================================================= */
+const pendingGrid = document.getElementById("pendingGrid");
+const reqPerson = document.getElementById("reqPerson");
+
+TEAM.forEach(p=>{
+  const opt = document.createElement("option");
+  opt.value = p.id;
+  opt.textContent = p.name;
+  reqPerson.appendChild(opt);
+});
+
+function renderPendingGrid(){
+  pendingGrid.innerHTML = "";
+  TEAM.forEach(p=>{
+    const card = document.createElement("div");
+    card.className = "pending-card";
+    const val = pendingPrevYear[p.id] != null ? pendingPrevYear[p.id] : 0;
+    card.innerHTML = `
+      <div class="name">${p.name}</div>
+      <label>Días pendientes vacaciones 2025 (caducaron 30 abr 2026)</label>
+      <input type="number" min="0" step="0.5" value="${val}" data-person="${p.id}">
+    `;
+    pendingGrid.appendChild(card);
+  });
+
+  pendingGrid.querySelectorAll("input").forEach(input=>{
+    input.addEventListener("change", ()=>{
+      setPendingPrevYear(input.dataset.person, input.value);
+    });
+  });
+}
+
+document.getElementById("addRequestBtn").addEventListener("click", ()=>{
+  const personId = reqPerson.value;
+  const type = document.getElementById("reqType").value;
+  const start = document.getElementById("reqStart").value;
+  const end = document.getElementById("reqEnd").value;
+
+  if(!start || !end){
+    alert("Por favor selecciona fecha de inicio y fin.");
+    return;
+  }
+  if(end < start){
+    alert("La fecha de fin no puede ser anterior a la fecha de inicio.");
+    return;
+  }
+
+  const days = countWorkdays(start, end);
+  if(days === 0){
+    alert("El rango seleccionado no contiene días laborables (festivos/fines de semana).");
+    return;
+  }
+
+  addRequest({personId, type, start, end, days});
+
+  document.getElementById("reqStart").value = "";
+  document.getElementById("reqEnd").value = "";
+});
+
+const typeLabels = {
+  vac2026: "Vacaciones 2026",
+  vac2025: "Vacaciones 2025 pend.",
+  libre: "Libre disposición",
+  navidad: "Navideño"
+};
+const typeBadges = {
+  vac2026: "badge-blue",
+  vac2025: "badge-yellow",
+  libre: "badge-green",
+  navidad: "badge-red"
+};
+
+function renderRequestsTable(){
+  const tbody = document.getElementById("requestsTableBody");
+  tbody.innerHTML = "";
+
+  const entries = Object.entries(requestsData).sort((a,b)=> a[1].start.localeCompare(b[1].start));
+
+  if(entries.length === 0){
+    tbody.innerHTML = `<tr><td colspan="6" class="small-text" style="text-align:center;padding:20px;">No hay solicitudes registradas</td></tr>`;
+    return;
+  }
+
+  entries.forEach(([id, r])=>{
+    const person = TEAM.find(p=>p.id===r.personId);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${person ? person.name : r.personId}</td>
+      <td><span class="badge ${typeBadges[r.type]||'badge-blue'}">${typeLabels[r.type]||r.type}</span></td>
+      <td>${formatDateEs(new Date(r.start+"T00:00:00"))}</td>
+      <td>${formatDateEs(new Date(r.end+"T00:00:00"))}</td>
+      <td style="text-align:center;font-weight:700;">${r.days}</td>
+      <td><button class="btn-delete" data-id="${id}">Eliminar</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll(".btn-delete").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      if(confirm("¿Eliminar esta solicitud?")) deleteRequest(btn.dataset.id);
+    });
+  });
+}
+
+/* Balance table */
+const ALLOWANCES = {
+  vac2026: 22,
+  libre: 7,
+  navidad: 3
+};
+
+function renderBalanceTable(){
+  const tbody = document.getElementById("balanceTableBody");
+  tbody.innerHTML = "";
+
+  TEAM.forEach(p=>{
+    const used = {vac2026:0, vac2025:0, libre:0, navidad:0};
+    Object.values(requestsData).forEach(r=>{
+      if(r.personId === p.id && used[r.type] !== undefined){
+        used[r.type] += r.days;
+      }
+    });
+
+    const pendingPrev = pendingPrevYear[p.id] != null ? pendingPrevYear[p.id] : 0;
+    const vac2025Remaining = pendingPrev - used.vac2025;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="font-weight:700;">${p.name}</td>
+      <td>${ALLOWANCES.vac2026 - used.vac2026} / ${ALLOWANCES.vac2026}<br><span class="small-text">(usados: ${used.vac2026})</span></td>
+      <td>${vac2025Remaining.toFixed(1)} / ${pendingPrev}<br><span class="small-text">(usados: ${used.vac2025})</span></td>
+      <td>${ALLOWANCES.libre - used.libre} / ${ALLOWANCES.libre}<br><span class="small-text">(usados: ${used.libre})</span></td>
+      <td>${ALLOWANCES.navidad - used.navidad} / ${ALLOWANCES.navidad}<br><span class="small-text">(usados: ${used.navidad})</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+/* =========================================================
+   RESET BUTTON / MODAL
+   ========================================================= */
+const resetModal = document.getElementById("resetModal");
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  resetModal.classList.add("active");
+});
+document.getElementById("cancelReset").addEventListener("click", ()=>{
+  resetModal.classList.remove("active");
+});
+document.getElementById("confirmReset").addEventListener("click", ()=>{
+  resetAllData();
+  resetModal.classList.remove("active");
+});
+
+/* =========================================================
+   INIT
+   ========================================================= */
+renderTeamLegend();
+renderCalendar();
+renderPendingGrid();
+renderRequestsTable();
+renderBalanceTable();
+</script>
+
+</body>
+</html>
